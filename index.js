@@ -29,6 +29,7 @@ async function run() {
         const database = client.db("HouseHunterDB");
         const seed = database.collection("seed");
         const bookingCollection = client.db("HouseHunterDB").collection("bookings");
+        const adminCheck = client.db("HouseHunterDB").collection("adminEmail");
 
 
         // seed
@@ -38,7 +39,7 @@ async function run() {
             //pagination
             const page = +req.query.page;
             const limit = +req.query.limit;
-            const skip = (page - 1) * limit || 5;
+            const skip = (page - 1) * limit;
 
             const cursor = seed.find().skip(skip).limit(limit);
             const result = await cursor.toArray();
@@ -75,6 +76,20 @@ async function run() {
             };
             const result = await bookingCollection.updateOne(filter, updateDoc);
             res.send(result);
+        })
+
+
+        // admin
+        // "/api/v1/admin?email=site@admin.com"
+        app.get("/api/v1/admin", async (req, res) => {
+            const email = req.query.email;
+            const result = await adminCheck.find({ email }).toArray();
+            if (result.length > 0) {
+                res.send({ isAdmin: true });
+            } else {
+                res.status(404).send({ isAdmin: false });
+            }
+
         })
 
         // Send a ping to confirm a successful connection
